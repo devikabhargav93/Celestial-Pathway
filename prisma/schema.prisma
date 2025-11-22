@@ -1,0 +1,258 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")kf
+}
+
+model userMasters {
+  userId       Int           @id @default(autoincrement())
+  username     String        @unique
+  email        String        @unique
+  passwordHash String
+  roleId       Int?
+  role         Roles?        @relation(fields: [roleId], references: [roleId])
+  userDetails  userDetails[]
+  enrollments  Enrollment[]
+  payments     PaymentDetails[]
+  progress     Progress[]
+  marks        marks[]
+  certifications Certification[]
+
+  createdBy    String?
+  createdOn    DateTime?
+  updatedBy    String?
+  updatedOn    DateTime?
+  dataStatus   String?
+  recStatus    String?
+  recSeq       Int?
+}
+
+model userDetails {
+  userDetailId Int        @id @default(autoincrement())
+  userId       Int
+  user         userMasters @relation(fields: [userId], references: [userId])
+  firstName    String?
+  lastName     String?
+  dob          DateTime?
+  phone        String?
+  address      String?
+
+  createdBy    String?
+  createdOn    DateTime?
+  updatedBy    String?
+  updatedOn    DateTime?
+  dataStatus   String?
+  recStatus    String?
+  recSeq       Int?
+}
+
+model Roles {
+  roleId         Int           @id @default(autoincrement())
+  roleName       String        @unique
+  roleDescription String?
+
+  users          userMasters[]
+
+  createdBy      String?
+  createdOn      DateTime?
+  updatedBy      String?
+  updatedOn      DateTime?
+  dataStatus     String?
+  recStatus      String?
+  recSeq         Int?
+}
+
+model Enrollment {
+  enrollmentId Int        @id @default(autoincrement())
+  userId       Int
+  courseId     Int
+  user         userMasters @relation(fields: [userId], references: [userId])
+  course       course      @relation(fields: [courseId], references: [courseId])
+  enrollmentDate DateTime?
+
+  createdBy    String?
+  createdOn    DateTime?
+  updatedBy    String?
+  updatedOn    DateTime?
+  dataStatus   String?
+  recStatus    String?
+  recSeq       Int?
+}
+
+model PaymentDetails {
+  paymentId     Int        @id @default(autoincrement())
+  userId        Int
+  courseId      Int
+  amount        Decimal
+  paymentDate   DateTime?
+  paymentMethod String?
+  transactionId String?
+  user          userMasters @relation(fields: [userId], references: [userId])
+  course        course      @relation(fields: [courseId], references: [courseId])
+
+  createdBy     String?
+  createdOn     DateTime?
+  updatedBy     String?
+  updatedOn     DateTime?
+  dataStatus    String?
+  recStatus     String?
+  recSeq        Int?
+}
+
+model Category {
+  categoryId   Int      @id @default(autoincrement())
+  categoryName String?
+  description  String?
+
+  courses      course[]
+
+  createdBy    String?
+  createdOn    DateTime?
+  updatedBy    String?
+  updatedOn    DateTime?
+  dataStatus   String?
+  recStatus    String?
+  recSeq       Int?
+}
+
+model course {
+  courseId     Int         @id @default(autoincrement())
+  categoryId   Int?
+  title        String?
+  description  String?
+  duration     String?
+  price        Decimal?
+  category     Category?   @relation(fields: [categoryId], references: [categoryId])
+  modules      Modules[]
+  enrollments  Enrollment[]
+  payments     PaymentDetails[]
+  certifications Certification[]
+
+  createdBy    String?
+  createdOn    DateTime?
+  updatedBy    String?
+  updatedOn    DateTime?
+  dataStatus   String?
+  recStatus    String?
+  recSeq       Int?
+}
+
+model Modules {
+  moduleId     Int      @id @default(autoincrement())
+  courseId     Int
+  moduleTitle  String?
+  content      String?
+  sequenceNo   Int?
+  course       course   @relation(fields: [courseId], references: [courseId])
+  mcqs         Mcqs[]
+  progress     Progress[]
+  marks        marks[]
+
+  createdBy    String?
+  createdOn    DateTime?
+  updatedBy    String?
+  updatedOn    DateTime?
+  dataStatus   String?
+  recStatus    String?
+  recSeq       Int?
+}
+
+model Mcqs {
+  mcqId        Int      @id @default(autoincrement())
+  moduleId     Int
+  module       Modules  @relation(fields: [moduleId], references: [moduleId])
+  question     String?
+  optionA      String?
+  optionB      String?
+  optionC      String?
+  optionD      String?
+  correctOption String?
+
+  createdBy    String?
+  createdOn    DateTime?
+  updatedBy    String?
+  updatedOn    DateTime?
+  dataStatus   String?
+  recStatus    String?
+  recSeq       Int?
+}
+
+model Progress {
+  progressId   Int       @id @default(autoincrement())
+  userId       Int
+  moduleId     Int
+  status       String?
+  completedOn  DateTime?
+  user         userMasters @relation(fields: [userId], references: [userId])
+  module       Modules     @relation(fields: [moduleId], references: [moduleId])
+
+  createdBy    String?
+  createdOn    DateTime?
+  updatedBy    String?
+  updatedOn    DateTime?
+  dataStatus   String?
+  recStatus    String?
+  recSeq       Int?
+}
+
+model marks {
+  markId       Int       @id @default(autoincrement())
+  userId       Int
+  moduleId     Int
+  score        Decimal?
+  totalMarks   Decimal?
+  examDate     DateTime?
+  user         userMasters @relation(fields: [userId], references: [userId])
+  module       Modules     @relation(fields: [moduleId], references: [moduleId])
+
+  createdBy    String?
+  createdOn    DateTime?
+  updatedBy    String?
+  updatedOn    DateTime?
+  dataStatus   String?
+  recStatus    String?
+  recSeq       Int?
+}
+
+model Certification {
+  certificateId Int        @id @default(autoincrement())
+  userId        Int
+  courseId      Int
+  issueDate     DateTime?
+  certificateUrl String?
+  user          userMasters @relation(fields: [userId], references: [userId])
+  course        course      @relation(fields: [courseId], references: [courseId])
+
+  createdBy     String?
+  createdOn     DateTime?
+  updatedBy     String?
+  updatedOn     DateTime?
+  dataStatus    String?
+  recStatus     String?
+  recSeq        Int?
+}
+
+model careerpath {
+  pathId         Int      @id @default(autoincrement())
+  title          String?
+  description    String?
+  recommendedCourseIds String?
+
+  createdBy      String?
+  createdOn      DateTime?
+  updatedBy      String?
+  updatedOn      DateTime?
+  dataStatus     String?
+  recStatus      String?
+  recSeq         Int?
+}
